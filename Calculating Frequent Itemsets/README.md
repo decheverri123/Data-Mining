@@ -1,6 +1,4 @@
-Implementation and evaluation of a MapReduce algorithm for mining (approximately) the frequent itemsets from a dataset. 
-
-Used the SON Apriori algorithm with Hadoop to mine the blocks of transactions in the first Map.
+Implementation and evaluation of a MapReduce algorithm for mining (approximately) the frequent itemsets from a dataset. Used the SON Apriori algorithm with Hadoop to mine the blocks of transactions in the first Map.
 
 
 
