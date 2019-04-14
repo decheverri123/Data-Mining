@@ -20,7 +20,8 @@ class TriestImpr:
         
         if not common_neighborhood: return
 
-        incTri = max(1, int(((self.t - 1) * (self.t - 2)) / (self.memory * (self.memory - 1))))
+        incTri = max(1,
+                    int(((self.t - 1) * (self.t - 2)) / (self.memory * (self.memory - 1))))
         
         incTri -= 1
 

@@ -6,7 +6,7 @@ from collections import abc
 
 
 
-mode = 2
+mode = 1
 sampleSize = [5000, 10000, 20000, 30000, 40000]
 iterations = 1
 outputs = []
