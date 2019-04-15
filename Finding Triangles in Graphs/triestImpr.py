@@ -1,53 +1,69 @@
-from Edges import Edges
-from collections import defaultdict
 from random import random
+from EdgeSample import EdgeSample
+from collections import defaultdict
 
 class TriestImpr:
     def __init__(self,M):
-        self.memory = M
-        self.sample = Edges()
-        self.globalT = 0
-        self.localT = {}
+        self.M = M
+        self.edgeSample = EdgeSample()
+        self.totalTri = 0
+        self.localTri = defaultdict(set)
         self.t = 0
 
-    def reservoirSample(self, u, v):
-        
-        return self.t <= self.memory and self.flipCoin
+    def sampled(self,u,v):
+        if self.t <= self.M: return True
+
+        elif self.flipCoin():
+            uDel, vDel = self.edgeSample.remove()
+            self.edgeSample.editHood('-',uDel,vDel)
+            return True
+        return False
 
     def updateCount(self, u, v, op):
         
-        common_neighborhood = self.sample.getIntersection(u,v)
+        common = self.edgeSample.getInter(u,v)
         
-        if not common_neighborhood: return
-
-        incTri = max(1,
-                    int(((self.t - 1) * (self.t - 2)) / (self.memory * (self.memory - 1))))
+        if not common: return
+        varFomula = ((self.t - 1) * (self.t - 2)) // (self.M * (self.M - 1))
         
-        incTri -= 1
+        inc = max(1, varFomula)
 
-        for c in common_neighborhood:
+        for neighbor in common:
 
             if op == '+':
-
-                self.globalT += incTri
+                self.totalTri += inc
                 
-                if c in self.localT: self.localT[c] += incTri
-                else: self.localT[c] = incTri
+                try: self.localTri[neighbor] += inc
+                except TypeError: self.localTri[neighbor] = inc
+                
+                try: self.localTri[u] += inc
+                except TypeError: self.localTri[u] = inc
+                
+                try: self.localTri[v] += inc
+                except TypeError: self.localTri[v] = inc
+            
+            if op == '-':
+                self.totalTri -= inc
+                
+                try: self.localTri[neighbor] -= inc
+                except TypeError: self.localTri[neighbor] = inc
+                
+                try: self.localTri[u] -= inc
+                except TypeError: self.localTri[u] = inc
+                
+                try: self.localTri[v] -= inc
+                except TypeError: self.localTri[v] = inc
 
-                if u in self.localT: self.localT[u] += incTri
-                else: self.localT[u] = incTri
-
-                if v in self.localT: self.localT[v] += incTri
-                else: self.localT[v] = incTri
 
 
     def flipCoin(self):
-        return random() <= self.memory/self.t
+        return random() <= self.M/self.t
 
-    def returnCounters(self):
-        return {'totalTriangles':self.globalT,'localTriangles':self.localT}
+    def getCount(self):
+        return {'total':self.totalTri,'local':self.localTri}
 
     def run(self,u,v):
         self.t += 1
         self.updateCount(u,v,'+')
-        if self.reservoirSample(u,v): self.sample.addEdge(u,v)
+        if self.sampled(u,v):
+            self.edgeSample.add(u,v)

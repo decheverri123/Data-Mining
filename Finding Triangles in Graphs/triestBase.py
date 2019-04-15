@@ -1,84 +1,87 @@
-from Edges import Edges
-from collections import defaultdict
 import random
-
+from EdgeSample import EdgeSample
+from collections import defaultdict
 
 class TriestBase:
-    def __init__(self,M):
-        self.memory = M
-        self.sample = Edges()
-        self.globalT = 0
-        self.localT = {}
-        self.t = 0
+
 
     
+    def __init__(self,M):
+        self.M = M
+        self.edgeSample = EdgeSample()
+        self.totalTri = 0
+        self.localTri = defaultdict()
+        self.t = 0
+
 
     def flipCoin(self):
-        return random.random() <= self.memory/self.t
+        return random.random() <= self.M/self.t
 
+    def sampEdge(self,u,v):
+        if self.t <= self.M: return True
 
-    # can edge be inserted?
-    def reservoirSample(self, u, v):
-        if self.t <= self.memory: return True
-
-        # no space, flip coin to remove random edge
         elif self.flipCoin():
-            uDel, vDel = self.sample.removeEdge()
+            uDel, vDel = self.edgeSample.remove()
             self.updateCount(uDel,vDel,'-')
             return True
         
         return False
 
-    def updateCount(self, u, v, op):
+    def updateCount(self,u,v,op):
+        comm = self.edgeSample.getInter(u,v)
         
-        commonNeighbors = self.sample.getIntersection(u,v)
-        if not commonNeighbors: return
+        if not comm: return
 
-        for c in commonNeighbors:
 
-            if op == '+':
-                self.globalT += 1
-                if c in self.localT: self.localT[c] += 1
-                else: self.localT[c] = 1
+        if op == '+':
+            self.totalTri += 1
 
-                if u in self.localT: self.localT[u] += 1
-                else: self.localT[u] =1
 
-                if v in self.localT: self.localT[v] += 1
-                else: self.localT[v] = 1
+            if v in self.localTri:
+                self.localTri[v] += 1
 
-            elif op == '-':
-                self.globalT -= 1
-                self.localT[c] -= 1
+            for shared in comm:
+                if shared in self.localTri:
+                    self.localTri[shared] += 1
 
-                if self.localT[c] == 0: self.localT.pop(c)
+            
+            self.totalTri += 1
                 
-                self.localT[u] -= 1
-                
-                if self.localT[u] == 0: self.localT.pop(u)
-                
-                self.localT[v] -= 1
-                
-                if self.localT[v] == 0: self.localT.pop(v)
+
+        elif op == '-':
+            
+            self.totalTri -= 1
+
+            if u in self.localTri:
+                self.localTri[u] -= 1
+                if self.localTri[u] == 0: self.localTri.pop(u)
+            
+            if v in self.localTri:
+                self.localTri[v] -= 1
+                if self.localTri[v] == 0: self.localTri.pop(v)
+
+            for shared in comm:
+                if shared in self.localTri:
+                    self.localTri[shared] -= 1
+                    if self.localTri[shared] == 0: self.localTri.pop(shared)
 
     
 
-    def returnCounters(self):
-        
-        estimate = max(1,
-                    (self.t * (self.t - 1) * (self.t - 2)) / (self.memory * (self.memory - 1) * (self.memory - 2)))
-        
-        estimate -=1
+    def getCount(self):
 
-        totalTriangles = int(estimate * self.globalT)
 
-        for key in self.localT:
-            self.localT[key] = int(self.localT[key] * estimate)
+        varFormula = (self.t * (self.t - 1) * (self.t - 2))/(self.M * (self.M - 1) * (self.M - 2))
+        estimate = max(1, varFormula)
 
-        return {'totalTriangles':totalTriangles,'localTriangles':self.localT}
+        totalEst = int(estimate * self.totalTri)
+
+        for key in self.localTri:
+            self.localTri[key] = int(self.localTri[key] * estimate)
+
+        return {'total':totalEst,'local':self.localTri}
 
     def run(self,u,v):
         self.t += 1
-        if self.reservoirSample(u,v):
-            self.sample.addEdge(u,v)
+        if self.sampEdge(u,v):
+            self.edgeSample.add(u,v)
             self.updateCount(u,v,'+')

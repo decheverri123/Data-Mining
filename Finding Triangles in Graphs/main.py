@@ -1,42 +1,35 @@
-from triestBase import TriestBase
-from triestImpr import TriestImpr
-from collections import abc
+from TriestBase import TriestBase
+from TriestImpr import TriestImpr
+import sys
 
 
 
+output_vals = []
+
+iterations = 20
+
+algoType = str(sys.argv[1])
+sampleSize = int(sys.argv[2])
+inputFile = str(sys.argv[3])
 
 
-mode = 1
-sampleSize = [5000, 10000, 20000, 30000, 40000]
-iterations = 1
-outputs = []
-outputLocal = []
-file = "in.txt"
+for i in range(iterations):
+
+    if algoType == 'b':
+        model = TriestBase(sampleSize)
+
+    if algoType == 'i':
+        model = TriestImpr(sampleSize)
 
 
-def run():
-
-    for sample in sampleSize:
-        for it in range(iterations):
-            if mode == 1: model = TriestBase(sample)
-            else: model = TriestImpr(sample)
-
-            with open(file) as f:
-                for line in f:
-                    if line.startswith('%'): continue
-
-                    u, v = list(map(int, line.strip().split()))
-
-                    model.run(u, v)
-
-                # print("============ FINAL OUTPUT IS ====================")
-                # print(model.returnCounters())
-
-                # outputs.append(model.returnCounters()['totalTriangles'])
-                # outputLocal.append(model.returnCounters()['localTriangles'])
-                print("Sample Size:", sample, "Iteration:", it+1, "Triangle Count:", model.returnCounters()['totalTriangles'])
+    with open(inputFile) as f:
+        for line in f:
+            if line.startswith('%'): continue
+            u, v = line.split()
+            u, v = int(u), int(v)
+            model.run(u, v)
+            
+        output_vals.append(model.getCount()['total'])
 
 
-
-if __name__ == "__main__":
-    run()    
+print("Output vals",output_vals)
