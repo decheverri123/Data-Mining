@@ -9,8 +9,8 @@ class TriestBase:
     def __init__(self,M):
         self.M = M
         self.edgeSample = EdgeSample()
-        self.totalTri = 0
         self.localTri = defaultdict()
+        self.totalTri = 0
         self.t = 0
 
 
@@ -27,7 +27,8 @@ class TriestBase:
         
         return False
 
-    def updateCount(self,u,v,op):
+    def updateCount(self, u, v, op):
+        
         comm = self.edgeSample.getInter(u,v)
         
         if not comm: return
@@ -36,17 +37,13 @@ class TriestBase:
         if op == '+':
             self.totalTri += 1
 
-
             if v in self.localTri:
                 self.localTri[v] += 1
 
             for shared in comm:
                 if shared in self.localTri:
                     self.localTri[shared] += 1
-
-            
-            self.totalTri += 1
-                
+                self.localTri[shared] = 1
 
         elif op == '-':
             
@@ -68,15 +65,14 @@ class TriestBase:
     
 
     def getCount(self):
-
-
         varFormula = (self.t * (self.t - 1) * (self.t - 2))/(self.M * (self.M - 1) * (self.M - 2))
         estimate = max(1, varFormula)
-
-        totalEst = int(estimate * self.totalTri)
+        totalEst = int(estimate) * self.totalTri
+        totalEst = abs(totalEst)
 
         for key in self.localTri:
             self.localTri[key] = int(self.localTri[key] * estimate)
+        
 
         return {'total':totalEst,'local':self.localTri}
 

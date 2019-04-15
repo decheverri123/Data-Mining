@@ -10,16 +10,22 @@ class TriestImpr:
         self.localTri = defaultdict(set)
         self.t = 0
 
-    def sampled(self,u,v):
+    
+    def flipCoin(self):
+        return random() <= self.M/self.t
+
+    def sampled(self, u, v):
+
+        uDel, vDel = None, None 
+        
         if self.t <= self.M: return True
 
         elif self.flipCoin():
             uDel, vDel = self.edgeSample.remove()
-            self.edgeSample.editHood('-',uDel,vDel)
-            return True
-        return False
 
-    def updateCount(self, u, v, op):
+        return uDel and vDel
+
+    def updateCount(self, u, v):
         
         common = self.edgeSample.getInter(u,v)
         
@@ -30,40 +36,23 @@ class TriestImpr:
 
         for neighbor in common:
 
-            if op == '+':
+            try:
+                self.localTri[neighbor] += inc
                 self.totalTri += inc
-                
-                try: self.localTri[neighbor] += inc
-                except TypeError: self.localTri[neighbor] = inc
-                
-                try: self.localTri[u] += inc
-                except TypeError: self.localTri[u] = inc
-                
-                try: self.localTri[v] += inc
-                except TypeError: self.localTri[v] = inc
-            
-            if op == '-':
-                self.totalTri -= inc
-                
-                try: self.localTri[neighbor] -= inc
-                except TypeError: self.localTri[neighbor] = inc
-                
-                try: self.localTri[u] -= inc
-                except TypeError: self.localTri[u] = inc
-                
-                try: self.localTri[v] -= inc
-                except TypeError: self.localTri[v] = inc
-
-
-
-    def flipCoin(self):
-        return random() <= self.M/self.t
+                self.localTri[u] += inc
+                self.localTri[v] += inc
+            except:
+                self.localTri[neighbor] = inc
+                self.totalTri = inc
+                self.localTri[u] = inc
+                self.localTri[v] = inc
+    
 
     def getCount(self):
         return {'total':self.totalTri,'local':self.localTri}
 
     def run(self,u,v):
         self.t += 1
-        self.updateCount(u,v,'+')
+        self.updateCount(u,v)
         if self.sampled(u,v):
             self.edgeSample.add(u,v)

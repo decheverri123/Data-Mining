@@ -4,7 +4,7 @@ import sys
 
 
 
-output_vals = []
+results = []
 
 iterations = 20
 
@@ -29,7 +29,7 @@ for i in range(iterations):
             u, v = int(u), int(v)
             model.run(u, v)
             
-        output_vals.append(model.getCount()['total'])
+        results.append(model.getCount()['total'])
 
 
-print("Output vals",output_vals)
+print("Output vals",results)
